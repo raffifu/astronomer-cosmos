@@ -88,8 +88,10 @@ def test_dbtproject__handle_config_file_empty_file():
 
         dbt_project = DbtProject(project_name="empty_project")
         assert not dbt_project.models
+        assert not dbt_project.tests
         dbt_project._handle_config_file(sample_config_file_path)
         assert not dbt_project.models
+        assert not dbt_project.tests
 
 
 def test_dbtproject__handle_config_file_with_unknown_name():
@@ -101,8 +103,49 @@ def test_dbtproject__handle_config_file_with_unknown_name():
         sample_config_file_path = Path(tmp_fp.name)
         dbt_project = DbtProject(project_name="empty_project")
         assert not dbt_project.models
+        assert not dbt_project.tests
         dbt_project._handle_config_file(sample_config_file_path)
         assert not dbt_project.models
+        assert not dbt_project.tests
+
+
+def test_dbtproject__handle_config_file_with_empty_model_name():
+    yaml_data = {"models": [{"name": None}]}
+    with NamedTemporaryFile("w") as tmp_fp:
+        yaml.dump(yaml_data, tmp_fp)
+        tmp_fp.flush()
+
+        sample_config_file_path = Path(tmp_fp.name)
+        dbt_project = DbtProject(project_name="empty_project")
+        assert not dbt_project.models
+        dbt_project._handle_config_file(sample_config_file_path)
+        assert not dbt_project.models
+
+
+def test_dbtproject__handle_config_file_with_empty_tests_name():
+    yaml_data = {
+        "models": [
+            {
+                "name": "table_name",
+                "columns": [
+                    {
+                        "name": None,
+                        "tests": ["not_null", "unique"],
+                    }
+                ],
+            }
+        ]
+    }
+
+    with NamedTemporaryFile("w") as tmp_fp:
+        yaml.dump(yaml_data, tmp_fp)
+        tmp_fp.flush()
+
+        sample_config_file_path = Path(tmp_fp.name)
+        dbt_project = DbtProject(project_name="empty_project")
+        assert not dbt_project.tests
+        dbt_project._handle_config_file(sample_config_file_path)
+        assert not dbt_project.tests
 
 
 @pytest.mark.parametrize(
